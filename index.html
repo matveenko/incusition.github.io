@@ -1061,6 +1061,22 @@
         renderHome();
         updateProgress();
         adjustPadding();
+        // === ФИКС СКРОЛЛА МЫШКОЙ НА ПК ===
+        const achRow = document.getElementById('achievementsRow');
+        const tagsRow = document.getElementById('tagsContainer'); // И теги заодно, чтоб два раза не вставать
+
+        function enableHorizontalScroll(el) {
+            if(!el) return;
+            el.addEventListener('wheel', (e) => {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    el.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+        }
+
+        enableHorizontalScroll(achRow);
+        enableHorizontalScroll(tagsRow);
     </script>
 </body>
 </html>
