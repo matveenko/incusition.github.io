@@ -2,299 +2,267 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Inquisition Hub</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            /* --- ЦВЕТОВАЯ СХЕМА (DARKEST BLOOD) --- */
+            /* === ЦВЕТОВАЯ СХЕМА === */
+            --bg-body-grad: linear-gradient(180deg, rgb(20, 5, 8) 0%, #140000 100%);
+            --bg-card-home: rgba(55, 10, 17, 0.6); 
+            --text-main: #FFFFF0; 
+            --text-sec: #A0A090; 
+            --accent: #FFFFF0; 
+            --accent-gold: #FFD700;
+            --danger-red: #ff3333;
             
-            /* Полупрозрачный фон для карточек, чтобы они не сливались с темнотой */
-            --bg-card: rgba(55, 10, 17, 0.6); 
-            
-            --text-main: #FFFFF0; /* Слоновая кость */
-            --text-sec: #A0A090; /* Темно-серый для описаний */
-            
-            --accent: #FFFFF0; /* Акцент - Слоновая кость */
-            --accent-dark: #1a0505; /* Цвет текста на кнопках */
-            
-            --danger-red: #ff3333; 
+            /* === ШТОРКА === */
+            --sheet-bg: #111111;
+            --sheet-text: #ffffff;
+            --sheet-arrow: #ff3333; 
+            --sheet-btn-bg: #FFFFF0; 
+            --sheet-btn-text: #000000;
             
             --radius: 16px;
-            --shadow: 0 10px 40px rgba(0,0,0,0.8); /* Очень глубокие тени */
-            --sheet-bg: #0f0f0f;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
         
         body {
-            /* ГРАДИЕНТ: ОЧЕНЬ ТЕМНЫЙ */
-            /* Сверху: Почти черный с оттенком крови (rgb 20, 5, 8) */
-            /* Снизу: Полная тьма (#050505) */
-            background: linear-gradient(180deg, rgb(63, 7, 7) 0%, #1d0404 100%);
+            background: var(--bg-body-grad);
             background-attachment: fixed;
             color: var(--text-main);
-            padding-bottom: 40px;
-            opacity: 0; 
-            animation: fadeInPage 0.3s ease-out forwards;
+            padding-bottom: 50px;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        @keyframes fadeInPage { to { opacity: 1; } }
-        @keyframes glideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .glide-entry { opacity: 0; animation: glideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-        @keyframes shimmer { 0% { transform: translateX(-100%) skewX(-15deg); } 100% { transform: translateX(200%) skewX(-15deg); } }
+        /* АНИМАЦИИ */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-entry { opacity: 0; animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
 
-        /* --- HEADER --- */
+        /* HEADER */
         .header-container {
             position: fixed; top: 0; left: 0; width: 100%;
             background: rgba(20, 5, 8, 0.95);
-            z-index: 100;
-            padding: 15px 15px 10px 15px;
+            z-index: 100; padding: 15px 15px 10px 15px;
             border-bottom: 1px solid rgba(255, 255, 240, 0.05);
-            transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            transition: height 0.2s ease;
         }
         .header-top-row { display: flex; align-items: center; gap: 10px; }
         
         .back-btn { 
-            padding: 0 16px; height: 42px; background: rgba(255,255,255,0.05); 
+            width: 42px; height: 42px; background: rgba(255,255,255,0.05); 
             border-radius: 12px; color: var(--accent); 
-            font-weight: 800; font-size: 14px; cursor: pointer; 
+            font-weight: 800; font-size: 18px; cursor: pointer; 
             display: none; align-items: center; justify-content: center;
-            border: 1px solid rgba(255, 255, 240, 0.1); transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 240, 0.1);
         }
-        .back-btn:active { background: rgba(255, 255, 240, 0.1); transform: scale(0.95); }
-        
         .search-box { 
             flex: 1; height: 42px; background: rgba(0,0,0,0.3); 
             border: 1px solid rgba(255, 255, 240, 0.1); border-radius: 12px; 
-            padding: 0 15px; color: var(--text-main); font-size: 15px; transition: all 0.3s;
+            padding: 0 15px; color: var(--text-main); font-size: 15px; 
         }
-        .search-box::placeholder { color: rgba(255, 255, 240, 0.2); }
-        .search-box:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(255, 255, 240, 0.05); }
-        
         .tags-wrapper { display: none; gap: 8px; overflow-x: auto; padding-top: 12px; padding-bottom: 5px; scrollbar-width: none; }
-        .tags-wrapper::-webkit-scrollbar { display: none; }
-        .tag { white-space: nowrap; padding: 8px 16px; background: rgba(255,255,255,0.05); border-radius: 30px; font-size: 13px; font-weight: 700; color: rgba(255, 255, 240, 0.5); cursor: pointer; border: 1px solid transparent; transition: all 0.3s; }
-        .tag.active { background: var(--accent); color: var(--accent-dark); box-shadow: 0 4px 15px rgba(255, 255, 240, 0.2); font-weight: 900; }
+        .tag { white-space: nowrap; padding: 8px 16px; background: rgba(255,255,255,0.05); border-radius: 30px; font-size: 13px; font-weight: 700; color: rgba(255, 255, 240, 0.5); cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .tag.active { background: var(--accent); color: #1a0505; font-weight: 900; }
 
-        /* --- CONTENT --- */
-        .main-content { padding: 80px 15px 80px 15px; transition: padding-top 0.3s ease; }
+        .main-content { padding: 90px 15px 40px 15px; transition: padding-top 0.2s ease; }
 
-        /* --- PROGRESS CARD --- */
+        /* PROGRESS CARD */
         .progress-card {
-            background: var(--bg-card);
+            background: var(--bg-card-home);
             border-radius: var(--radius); padding: 20px;
             margin-bottom: 20px; 
             border: 1px solid rgba(255, 255, 240, 0.08);
-            box-shadow: var(--shadow);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             position: relative; overflow: hidden;
         }
-        .progress-card.ascended {
-            background: linear-gradient(135deg, #000000, #1a1a1a);
-            border: 1px solid var(--accent);
-            box-shadow: 0 0 30px rgba(255, 255, 240, 0.1);
-        }
-        
         .rank-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
-        .rank-title { font-size: 12px; color: rgba(255, 255, 240, 0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; }
-        .rank-name { font-size: 18px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; text-shadow: 0 0 15px rgba(255, 255, 240, 0.1); }
+        .rank-title { font-size: 12px; color: rgba(255, 255, 240, 0.4); text-transform: uppercase; font-weight: 700; }
+        .rank-name { font-size: 18px; font-weight: 900; color: var(--accent); text-transform: uppercase; margin-top: 4px; text-shadow: 0 0 15px rgba(255, 255, 240, 0.1); }
+        .rank-name.gold { color: var(--accent-gold); text-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+
+        .progress-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+        .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; border-radius: 4px; transition: width 0.5s ease; }
+
+        /* ИСПРАВЛЕННЫЙ БЛОК АЧИВОК */
+        .achievements-row { 
+            display: flex; gap: 4px; justify-content: space-between; overflow-x: auto; 
+            padding: 12px; 
+            /* Градиентная подложка, чтобы было видно на любом фоне */
+            background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 100%);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 240, 0.05); 
+            scrollbar-width: none;
+        }
         
-        .rank-name.ascended-text {
-            background: linear-gradient(90deg, #FFFFF0, #ff4d4d, #FFFFF0);
-            background-size: 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: gradientMove 3s linear infinite; font-size: 20px; letter-spacing: 1px;
+        .badge { 
+            width: 40px; height: 40px; min-width: 40px; 
+            border-radius: 50%; 
+            /* Более светлый фон для закрытых ачивок */
+            background: rgba(255,255,255,0.08); 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 19px; filter: grayscale(1) opacity(0.5); 
+            border: 1px solid rgba(255,255,255,0.15); /* Явная обводка */
+            transition: 0.2s; cursor: pointer;
         }
-        @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-
-        .progress-stats { font-size: 12px; color: var(--text-sec); font-weight: 600; opacity: 0.8; }
-        .progress-bar-bg { width: 100%; height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; position: relative; margin-bottom: 15px; }
-        .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; border-radius: 4px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(255, 255, 240, 0.3); }
-
-        /* ACHIVEMENTS ROW */
-        .achievements-row {
-            display: flex; gap: 8px; justify-content: space-between;
-            padding-top: 15px; border-top: 1px solid rgba(255, 255, 240, 0.08);
-            overflow-x: auto; scrollbar-width: none;
-        }
-        .badge {
-            width: 40px; height: 40px; min-width: 40px; border-radius: 50%;
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255, 255, 240, 0.1);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; color: rgba(255, 255, 240, 0.2); filter: grayscale(1); opacity: 0.5;
-            transition: all 0.3s; cursor: pointer;
-        }
-        .badge.unlocked {
-            filter: grayscale(0); opacity: 1;
-            background: rgba(255, 255, 240, 0.1);
-            color: #fff;
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(255, 255, 240, 0.1);
+        
+        .badge.unlocked { 
+            filter: grayscale(0) opacity(1); 
+            border-color: var(--accent); 
+            background: rgba(255,255,255,0.1); 
+            color: #fff; 
+            box-shadow: 0 0 10px rgba(255,255,255,0.1); 
         }
         .badge:active { transform: scale(0.9); }
 
-        .badge.secret { border: 1px dashed rgba(255, 255, 240, 0.2); }
-        .badge.secret.unlocked {
-            border: 1px solid var(--accent);
-            background: var(--accent);
-            color: var(--accent-dark);
-            box-shadow: 0 0 20px rgba(255, 255, 240, 0.4);
-            animation: pulse 2s infinite;
+        /* СЕКРЕТНЫЙ БЕЙДЖ */
+        .badge.secret-badge { border: 1px dashed rgba(255, 255, 240, 0.3); color: rgba(255, 255, 240, 0.5); font-family: monospace; font-weight: 700; background: transparent; }
+        .badge.secret-badge.unlocked { 
+            border: 1px solid #FFD700; 
+            background: rgba(255, 215, 0, 0.1); 
+            color: #FFD700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+            animation: pulseGold 2s infinite;
         }
-        @keyframes pulse { 0% { box-shadow: 0 0 10px rgba(255, 255, 240, 0.2); } 50% { box-shadow: 0 0 25px rgba(255, 255, 240, 0.4); } 100% { box-shadow: 0 0 10px rgba(255, 255, 240, 0.2); } }
+        @keyframes pulseGold { 0% { box-shadow: 0 0 5px rgba(255,215,0,0.1); } 50% { box-shadow: 0 0 15px rgba(255,215,0,0.3); } 100% { box-shadow: 0 0 5px rgba(255,215,0,0.1); } }
 
-        /* --- SPECIAL CARDS --- */
-        .special-card {
-            margin-bottom: 20px; border-radius: var(--radius); padding: 25px 20px;
-            cursor: pointer; position: relative; overflow: hidden;
-            display: flex; flex-direction: column; justify-content: center;
-            transition: transform 0.1s; min-height: 100px;
-            box-shadow: var(--shadow);
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 240, 0.08);
-        }
-        .special-card:active { transform: scale(0.98); }
-
-        .card-gold { border-left: 6px solid var(--accent); }
-        
-        .sp-title { font-weight: 900; font-size: 19px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; z-index: 2; }
-        .gold-text { color: var(--accent); text-shadow: 0 2px 15px rgba(255, 255, 240, 0.2); }
-        
-        .sp-desc { color: var(--text-sec); font-size: 13px; line-height: 1.3; z-index: 2; opacity: 0.9; font-weight: 500; }
-        .sp-bg-icon { position: absolute; right: -10px; bottom: -15px; font-size: 80px; opacity: 0.05; transform: rotate(-20deg); filter: grayscale(100%); z-index: 0; pointer-events: none; }
-
-        /* --- TILES --- */
-        #homeTilesContainer { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 15px; margin-top: 10px; }
-        
+        /* TILES & BUTTONS */
+        #homeTilesContainer { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 15px; margin-top: 15px; }
         .category-tile {
             background: rgba(255, 255, 255, 0.03);
             border-radius: var(--radius); padding: 25px 20px; cursor: pointer;
-            position: relative; overflow: hidden; 
             border: 1px solid rgba(255, 255, 240, 0.08);
-            box-shadow: var(--shadow);
-            display: flex; flex-direction: column; justify-content: space-between;
-            min-height: 140px; transition: transform 0.1s;
+            min-height: 140px; display: flex; flex-direction: column; justify-content: space-between;
+            transition: transform 0.1s;
         }
-        .category-tile:active { transform: scale(0.97); border-color: var(--accent); background: rgba(255, 255, 240, 0.05); }
+        .category-tile:active { transform: scale(0.97); background: rgba(255,255,255,0.08); border-color: var(--accent); }
         .tile-icon { font-size: 32px; margin-bottom: 15px; }
-        .tile-title { font-size: 15px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; word-break: break-word; hyphens: auto; }
-        .tile-count { font-size: 12px; color: rgba(255, 255, 240, 0.3); margin-top: 8px; font-weight: 500; }
+        .tile-title { 
+            font-size: 13px; font-weight: 800; color: var(--text-main); 
+            text-transform: uppercase; line-height: 1.2; 
+            word-break: break-word; hyphens: auto; 
+        }
+        .tile-count { font-size: 12px; color: rgba(255, 255, 240, 0.3); margin-top: 8px; }
 
-        /* --- LIST & POSTS --- */
+        .special-card {
+            margin-bottom: 15px; border-radius: var(--radius); padding: 20px;
+            cursor: pointer; position: relative; overflow: hidden;
+            background: var(--bg-card-home); border: 1px solid rgba(255, 255, 240, 0.08);
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .special-card:active { transform: scale(0.98); }
+        .card-gold { border-left: 5px solid var(--accent); }
+        .sp-title { font-weight: 900; font-size: 18px; text-transform: uppercase; margin-bottom: 5px; color: var(--accent); }
+        .sp-desc { font-size: 13px; color: var(--text-sec); opacity: 0.8; }
+        .sp-bg-icon { position: absolute; right: -10px; bottom: -15px; font-size: 70px; opacity: 0.05; transform: rotate(-20deg); filter: grayscale(1); pointer-events: none; }
+
         #listViewContainer { display: none; }
-        .section-header { margin-top: 25px; margin-bottom: 15px; display: flex; align-items: center; color: var(--accent); font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1.2px; }
-        .section-header::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--accent); margin-right: 12px; border-radius: 4px; box-shadow: 0 0 10px rgba(255, 255, 240, 0.3); }
+        .section-header { margin: 20px 0 15px 0; color: var(--accent); font-weight: 800; font-size: 14px; text-transform: uppercase; border-left: 3px solid var(--accent); padding-left: 10px; }
         .posts-list { display: flex; flex-direction: column; gap: 12px; }
-        
         .post-card { 
-            background-color: rgba(255, 255, 255, 0.03); 
-            padding: 18px; border-radius: var(--radius); cursor: pointer; 
-            position: relative; overflow: hidden; 
-            border: 1px solid rgba(255, 255, 240, 0.05); 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+            background: rgba(255, 255, 255, 0.03); padding: 18px; border-radius: var(--radius); 
+            border: 1px solid rgba(255, 255, 240, 0.05); cursor: pointer; transition: 0.2s;
         }
-        .post-card:active { background-color: rgba(255, 255, 255, 0.08); border-color: var(--accent); }
-        .post-title { font-size: 15px; line-height: 1.5; font-weight: 600; color: var(--text-main); display: flex; justify-content: space-between; align-items: flex-start; }
-        .is-read { opacity: 0.5; }
-        .read-icon { color: var(--accent); font-weight: bold; margin-left: 10px; font-size: 14px; text-shadow: 0 0 10px rgba(255, 255, 240, 0.3); }
-        .post-locked { border-left: 3px solid var(--danger-red); background: rgba(50, 0, 0, 0.3); }
-        .lock-icon { color: var(--danger-red); margin-left: 10px; }
-        .highlight { background: rgba(255, 255, 240, 0.2); color: #fff; padding: 0 2px; border-radius: 4px; }
+        .post-card:active { background: rgba(255,255,255,0.08); border-color: var(--accent); }
+        .post-card.is-read { opacity: 0.6; }
+        .post-title { font-size: 15px; line-height: 1.4; font-weight: 600; }
+        .read-marker { font-size: 10px; color: var(--accent); border: 1px solid var(--accent); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 8px; text-transform: uppercase; }
 
-        /* --- MODALS & SHEETS --- */
-        .toast {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: #111; border: 1px solid var(--accent);
-            color: #fff; padding: 12px 20px; border-radius: 30px;
-            font-size: 14px; font-weight: 600; z-index: 3000;
-            opacity: 0; visibility: hidden; transition: all 0.3s;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.8); text-align: center; white-space: nowrap;
-        }
-        .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
-
-        .celebration-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);
-            z-index: 2000; display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: all 0.4s;
-        }
-        .celebration-modal.active { opacity: 1; visibility: visible; }
-        
-        .celebration-card {
-            background: linear-gradient(135deg, rgb(30, 5, 8), #111);
-            border: 2px solid var(--accent);
-            border-radius: 24px; padding: 30px 20px;
-            width: 85%; max-width: 350px; text-align: center;
-            transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 0 60px rgba(255, 255, 240, 0.15);
-        }
-        .celebration-modal.active .celebration-card { transform: scale(1); }
-        
-        .cel-icon { font-size: 60px; margin-bottom: 20px; filter: drop-shadow(0 0 20px var(--accent)); }
-        .cel-title { color: #888; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
-        .cel-name { 
-            color: var(--accent); font-size: 24px; font-weight: 900; text-transform: uppercase; 
-            margin-bottom: 15px; line-height: 1.2; text-shadow: 0 0 20px rgba(255, 255, 240, 0.3);
-        }
-        .cel-msg { color: var(--text-sec); font-size: 14px; margin-bottom: 30px; line-height: 1.4; font-style: italic; }
-        .cel-btn {
-            background: var(--accent); color: var(--accent-dark);
-            border: none; padding: 16px 30px; border-radius: 16px;
-            font-weight: 900; font-size: 16px; text-transform: uppercase;
-            width: 100%; cursor: pointer; box-shadow: 0 5px 20px rgba(255, 255, 240, 0.2);
-        }
-        .cel-btn:active { transform: scale(0.97); }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 500; opacity: 0; visibility: hidden; transition: opacity 0.2s; }
+        /* SHEET (MINIMAL) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 500; opacity: 0; visibility: hidden; transition: 0.2s; backdrop-filter: blur(5px); }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         
         .bottom-sheet { 
             position: fixed; bottom: 0; left: 0; width: 100%; 
             background-color: var(--sheet-bg); 
             border-top-left-radius: 25px; border-top-right-radius: 25px; 
-            padding: 25px 20px 45px 20px; z-index: 600; 
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-            box-shadow: 0 -10px 60px rgba(0,0,0,0.9); 
-            max-height: 85vh; overflow-y: auto; 
-            border-top: 1px solid rgba(255, 255, 240, 0.1); 
+            padding: 30px 20px 45px 20px; z-index: 600; 
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.9); max-height: 85vh; overflow-y: auto;
         }
         .bottom-sheet.active { transform: translateY(0); }
         
-        .sheet-handle { width: 50px; height: 6px; background: #333; border-radius: 10px; margin: 0 auto 25px auto; }
-        .sheet-category { color: var(--accent); font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-        .sheet-title { font-size: 24px; font-weight: 800; line-height: 1.3; margin-bottom: 30px; color: var(--text-main); }
-        .sheet-actions { display: flex; gap: 10px; margin-bottom: 30px; }
+        .sheet-cat-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .sheet-cat-icon { font-size: 20px; }
+        .sheet-cat-text { color: var(--sheet-arrow); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .sheet-title { font-size: 24px; font-weight: 900; line-height: 1.2; margin-bottom: 30px; color: var(--sheet-text); }
         
-        .btn-main { flex: 1; text-align: center; background: var(--accent); color: var(--accent-dark); font-weight: 900; font-size: 16px; text-transform: uppercase; padding: 16px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 5px 20px rgba(255, 255, 240, 0.15); transition: transform 0.1s; }
-        .btn-main:active { transform: scale(0.97); }
-        
-        .btn-icon { flex: 0 0 52px; height: 52px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 240, 0.05); color: var(--accent); border: 1px solid var(--accent); border-radius: 14px; font-weight: 700; font-size: 20px; cursor: pointer; transition: background 0.1s; backdrop-filter: blur(5px); }
-        .btn-icon:active { background: rgba(255, 255, 240, 0.2); }
-        .btn-icon.active { background: var(--accent); color: var(--accent-dark); box-shadow: 0 0 15px rgba(255, 255, 240, 0.2); }
-
-        .related-section { border-top: 1px solid rgba(255, 255, 240, 0.1); padding-top: 25px; }
-        .related-header { font-size: 14px; color: rgba(255, 255, 240, 0.5); margin-bottom: 18px; font-weight: 700; text-transform: uppercase; }
-        .related-item { background: rgba(255, 255, 255, 0.05); padding: 14px 18px; border-radius: 12px; margin-bottom: 12px; font-size: 14px; color: var(--text-sec); display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255, 255, 240, 0.05); font-weight: 600; }
-        .related-item:active { background: rgba(255, 255, 255, 0.1); }
-        .related-arrow { color: var(--accent); font-weight: bold; }
-        
-        .upsell-btn { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 240, 0.1); color: var(--text-sec); padding: 16px; border-radius: 14px; text-align: center; font-size: 14px; font-weight: 600; margin-top: 25px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.2s; }
-        .upsell-btn:active { border-color: var(--accent); color: var(--accent); background: rgba(255, 255, 240, 0.05); }
-        
-        .empty-state { text-align: center; color: rgba(255, 255, 240, 0.4); margin-top: 60px; font-size: 15px; font-weight: 500; }
-        .btn-inq-action { margin-top: 20px; font-size: 14px; padding: 14px 24px; width: auto; display: inline-block; background: linear-gradient(135deg, var(--danger-red), #900000); color: #FFFFFF !important; font-weight: 800; text-transform: uppercase; border-radius: 12px; border: none; box-shadow: 0 5px 20px rgba(207, 10, 10, 0.4); transition: transform 0.1s; letter-spacing: 0.5px; }
-        .btn-inq-action:active { transform: scale(0.97); }
-
-        .fab-dice {
-            position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px;
-            background: var(--accent); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px; box-shadow: 0 5px 20px rgba(255, 255, 240, 0.3);
-            z-index: 90; cursor: pointer; transition: transform 0.2s;
-            border: 2px solid rgba(255,255,255,0.2); color: var(--accent-dark);
+        .btn-sheet-read { 
+            width: 100%; background: var(--sheet-btn-bg); color: var(--sheet-btn-text); 
+            font-weight: 900; font-size: 16px; text-transform: uppercase; 
+            padding: 18px; border-radius: 14px; border: none; cursor: pointer; 
+            margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.1);
         }
-        .fab-dice:active { transform: scale(0.9) rotate(20deg); }
+        .btn-sheet-read:active { transform: scale(0.98); opacity: 0.9; }
+        
+        .action-row { display: flex; gap: 10px; margin-bottom: 30px; }
+        
+        .btn-icon { 
+            flex: 1; height: 52px; background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); color: #fff; 
+            border-radius: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; 
+            font-size: 22px; transition: 0.2s; cursor: pointer;
+        }
+        .btn-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
+        
+        /* ICONS SVG */
+        .svg-icon { width: 24px; height: 24px; fill: var(--accent); transition: fill 0.3s ease; }
+        
+        /* FAVORITE ACTIVE */
+        .btn-icon.active .svg-icon { fill: var(--sheet-arrow); }
+        .btn-icon.active { border-color: var(--sheet-arrow); background: rgba(255, 50, 50, 0.1); }
+
+        /* SHARE ACTIVE (FLASH EFFECT) */
+        .btn-icon.flash-red { border-color: var(--sheet-arrow); background: rgba(255, 50, 50, 0.1); }
+        .btn-icon.flash-red .svg-icon { fill: var(--sheet-arrow); }
+
+        .sheet-header-small { opacity: 0.5; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .sheet-list { display: flex; flex-direction: column; }
+        .sheet-item { 
+            padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.1); 
+            font-size: 14px; font-weight: 600; color: #ddd; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .sheet-item:first-child { border-top: 1px solid rgba(255,255,255,0.1); }
+        .sheet-item:active { opacity: 0.6; }
+        .sheet-arrow-icon { color: var(--sheet-arrow); font-size: 18px; font-weight: bold; }
+
+        .fab-dice { position: fixed; bottom: 30px; right: 20px; width: 56px; height: 56px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; z-index: 90; box-shadow: 0 5px 20px rgba(0,0,0,0.5); color: #000; border: 2px solid rgba(255,255,255,0.2); }
+        .fab-dice:active { transform: rotate(45deg) scale(0.9); }
+
+        /* --- CELEBRATION MODAL --- */
+        .celebration-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .celebration-modal.active { opacity: 1; visibility: visible; }
+        
+        .celebration-card { 
+            background: #111; border: 2px solid var(--accent); 
+            border-radius: 24px; padding: 30px; width: 85%; max-width: 350px; text-align: center; 
+            box-shadow: 0 0 50px rgba(255,255,240,0.1); 
+            transform: scale(0.8); transition: transform 0.3s; position: relative; overflow: hidden;
+        }
+        .celebration-modal.active .celebration-card { transform: scale(1); }
+        
+        #celCloseBtn { 
+            width: 100%; background: var(--accent); color: #000; 
+            font-weight: 800; border: none; padding: 12px; 
+            border-radius: 12px; cursor: pointer; font-size: 16px;
+        }
+
+        /* SUPERHUMAN STYLE */
+        .celebration-card.superhuman-card {
+            border: 3px solid transparent;
+            background: linear-gradient(#000, #000) padding-box, linear-gradient(45deg, #FFD700, #ff0000, #FFD700) border-box;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.4);
+        }
+        .celebration-card.superhuman-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);
+            animation: rotateGlow 10s linear infinite; pointer-events: none; z-index: 0;
+        }
+        @keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -302,7 +270,7 @@
     <div class="header-container" id="listHeader">
         <div class="header-top-row">
             <div class="back-btn" id="backToHomeBtn">←</div>
-            <input type="text" id="searchInput" class="search-box" placeholder="Поиск в архивах...">
+            <input type="text" id="searchInput" class="search-box" placeholder="Поиск...">
         </div>
         <div class="tags-wrapper" id="tagsContainer"></div>
     </div>
@@ -310,24 +278,33 @@
     <div class="main-content" id="mainContent">
         
         <div id="homeWrapper">
-            <div class="progress-card glide-entry" id="progressCard" style="animation-delay: 0.02s;">
+            <div class="progress-card anim-entry" style="animation-delay: 0s;">
                 <div class="rank-header">
                     <div>
-                        <div class="rank-title">Твой статус:</div>
+                        <div class="rank-title">Твой ранг</div>
                         <div class="rank-name" id="rankName">ПОСЛЕДОВАТЕЛЬ</div>
                     </div>
-                    <div class="progress-stats" id="progressStats">0%</div>
+                    <div style="font-size:12px; font-weight:600; opacity:0.6;" id="progressStats">0%</div>
                 </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="progressBar"></div>
-                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
                 <div class="achievements-row" id="achievementsRow"></div>
             </div>
 
-            <div class="special-card card-gold glide-entry" id="credoBtn" style="animation-delay: 0.1s;">
-                <div class="sp-title gold-text">🏛 ФУНДАМЕНТ (ОТЧЕТЫ)</div>
-                <div class="sp-desc">Отчеты инквизиции и важные объявления.</div>
+            <div class="special-card card-gold anim-entry" id="credoBtn" style="animation-delay: 0.1s;">
+                <div class="sp-title">🏛 ФУНДАМЕНТ (ОТЧЕТЫ)</div>
+                <div class="sp-desc">База знаний. Начни отсюда.</div>
                 <div class="sp-bg-icon">📜</div>
+            </div>
+
+            <div class="special-card card-gold anim-entry" id="favBtn" style="display:none; animation-delay: 0.15s; border-color: #ffd700;">
+                <div class="sp-title" style="color:#ffd700; display:flex; align-items:center; gap:10px;">
+                    <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:#FFD700;">
+                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                    </svg>
+                    ИЗБРАННОЕ
+                </div>
+                <div class="sp-desc">Твоя коллекция. <span id="favCountMain">0</span> материалов.</div>
+                <div class="sp-bg-icon">🔖</div>
             </div>
 
             <div id="homeTilesContainer"></div>
@@ -340,44 +317,53 @@
     </div>
 
     <div class="fab-dice" id="randomBtn">🎲</div>
-    
-    <div id="celebrationModal" class="celebration-modal">
-        <div class="celebration-card">
-            <div class="cel-icon" id="celIcon">🏆</div>
-            <div class="cel-title">ДОСТИЖЕНИЕ РАЗБЛОКИРОВАНО</div>
-            <div class="cel-name" id="celName">ИМЯ АЧИВКИ</div>
-            <div class="cel-msg" id="celMsg">Описание</div>
-            <button class="cel-btn" onclick="closeCelModal()">ЗАЕБИСЬ</button>
-        </div>
-    </div>
-
-    <div id="toast" class="toast">Инфо</div>
 
     <div class="modal-overlay" id="modalOverlay"></div>
     <div class="bottom-sheet" id="postSheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-category" id="sheetCategory">РУБРИКА</div>
-        <div class="sheet-title" id="sheetTitle">Заголовок статьи</div>
+        <div style="width: 40px; height: 4px; background: #333; border-radius: 10px; margin: 0 auto 20px auto;"></div>
         
-        <div class="sheet-actions" id="sheetActions">
-            <button class="btn-main" id="readBtn">ЧИТАТЬ СТАТЬЮ 🔥</button>
-            <button class="btn-icon" id="favSheetBtn">⭐️</button>
-            <button class="btn-icon" id="shareBtn">📤</button>
+        <div class="sheet-cat-wrapper" id="sheetCatWrapper">
+            <span class="sheet-cat-icon" id="sheetIcon">💀</span>
+            <span class="sheet-cat-text" id="sheetCategory">...</span>
         </div>
         
-        <button class="btn-inq-action" id="lockedBtn" style="display:none; width:100%; margin-top:0;">ДОСТУПНО В ИНКВИЗИЦИИ 🔒</button>
+        <div class="sheet-title" id="sheetTitle">...</div>
+        
+        <button class="btn-sheet-read" id="readBtn">
+            <span>ЧИТАТЬ</span>
+            <span style="font-size:18px;">↗</span>
+        </button>
+        
+        <div class="action-row">
+            <button class="btn-icon" id="favSheetBtn">
+                <svg class="svg-icon" viewBox="0 0 24 24">
+                    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                </svg>
+            </button>
+            <button class="btn-icon" id="shareBtn">
+                <svg class="svg-icon" viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="sheet-header-small">ЕЩЁ ПО ТЕМЕ</div>
+        <div id="relatedContainer" class="sheet-list"></div>
+    </div>
 
-        <div class="related-section">
-            <div class="related-header">Ещё по этой теме:</div>
-            <div id="relatedContainer"></div>
+    <div id="celebrationModal" class="celebration-modal">
+        <div class="celebration-card" id="celCard">
+            <div style="font-size:50px; margin-bottom:15px; position:relative; z-index:1;" id="celIcon">🏆</div>
+            <div style="color:var(--accent); font-weight:900; font-size:20px; margin-bottom:10px; text-transform:uppercase; position:relative; z-index:1;" id="celName">...</div>
+            <div style="color:#888; margin-bottom:20px; font-size:14px; line-height:1.4; position:relative; z-index:1;" id="celMsg">...</div>
+            <button id="celCloseBtn" style="position:relative; z-index:1;">ОТЛИЧНО</button>
         </div>
-        <button class="upsell-btn" id="upsellBtn">🎁 Забрать секретные материалы (Бот)</button>
     </div>
 
     <script>
-        // === БАЗА ЗНАНИЙ (postsDB) ===
+        // === БАЗА ДАННЫХ ===
         const postsDB = [
-            // 💀 ЖИЗНЬ В АДУ (Сюда переехал "Фундамент")
+            // === 💀 ЖИЗНЬ В АДУ (включая перенесенные из Фундамента) ===
             {t: "ОПЫТ РАБОТЫ В НАЙМЕ: ЧТО ТЫ ДОЛЖЕН ВЫНЕСТИ?", u: "https://t.me/c/2283029399/18", c: "💀 ЖИЗНЬ В АДУ"},
             {t: "ДЕТСКИЙ ДОМ", u: "https://t.me/c/2283029399/21", c: "💀 ЖИЗНЬ В АДУ"},
             {t: "СМЕРТЬ ОТ ГОЛОДА ИЛИ ЖРАТЬ С ПОМОЙКИ?", u: "https://t.me/c/2283029399/22", c: "💀 ЖИЗНЬ В АДУ"},
@@ -390,7 +376,6 @@
             {t: "ДИССОЦИАТИВНЫЙ ТРИП", u: "https://t.me/c/2283029399/334", c: "💀 ЖИЗНЬ В АДУ"},
             {t: "ДИССОЦИАТИВНЫЙ ТРИП Ч.2", u: "https://t.me/c/2283029399/373", c: "💀 ЖИЗНЬ В АДУ"},
             {t: "НЕНАВИСТЬ — ТОПЛИВО С НУЛЕВЫМ КПД", u: "https://t.me/c/2283029399/409", c: "💀 ЖИЗНЬ В АДУ"},
-            // Перенесенное из ФУНДАМЕНТА:
             {t: "ТУЛЬПОВОДСТВО", u: "https://t.me/c/2283029399/20", c: "💀 ЖИЗНЬ В АДУ"},
             {t: "ТУЛЬПОВОВДСТВО Ч.2", u: "https://t.me/c/2283029399/155", c: "💀 ЖИЗНЬ В АДУ"},
             {t: "РАЗРЕШИ СЕБЕ ПРОИГРАТЬ", u: "https://t.me/c/2283029399/30", c: "💀 ЖИЗНЬ В АДУ"},
@@ -405,7 +390,7 @@
             {t: "LIBER INQUISITIONIS", u: "https://t.me/c/2283029399/46", c: "💀 ЖИЗНЬ В АДУ"},
             {t: "УРОБОРОС", u: "https://t.me/c/2283029399/309", c: "💀 ЖИЗНЬ В АДУ"},
 
-            // 🛡 ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ
+            // === 🛡 ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ ===
             {t: "ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ (ЦЕЛЕПОЛАГАНИЕ)", u: "https://t.me/c/2283029399/62", c: "🛡 ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ"},
             {t: "ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ (К ЧЕМУ ИДЕМ)", u: "https://t.me/c/2283029399/66", c: "🛡 ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ"},
             {t: "ВНЕШНЕЕ (ЭМОЦИОНАЛЬНАЯ БАЗА)", u: "https://t.me/c/2283029399/76", c: "🛡 ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ"},
@@ -421,7 +406,7 @@
             {t: "НУ ЭТО УЖЕ ПИЗДЕЦ (Ч. 4)", u: "https://t.me/c/2283029399/202", c: "🛡 ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ"},
             {t: "НУ ЭТО УЖЕ ПИЗДЕЦ (Ч. 5)", u: "https://t.me/c/2283029399/247", c: "🛡 ПСИХИЧЕСКАЯ НЕУЯЗВИМОСТЬ"},
 
-            // ⚔️ ЗАЩИТА ОТ ТЕМНЫХ ИСКУССТВ
+            // === ⚔️ ЗАЩИТА ОТ ТЕМНЫХ ИСКУССТВ ===
             {t: "ВВЕДЕНИЕ", u: "https://t.me/c/2283029399/38", c: "⚔️ ТЕМНЫЕ ИСКУССТВА"},
             {t: "ЭМПАТИЯ", u: "https://t.me/c/2283029399/61", c: "⚔️ ТЕМНЫЕ ИСКУССТВА"},
             {t: "ПРИМЕРЫ ЭМПАТИИ", u: "https://t.me/c/2283029399/69", c: "⚔️ ТЕМНЫЕ ИСКУССТВА"},
@@ -443,7 +428,7 @@
             {t: "РАДИКАЛЫ (НЛП)", u: "https://t.me/c/2283029399/227", c: "⚔️ ТЕМНЫЕ ИСКУССТВА"},
             {t: "ВНЕШНИЙ ВИД РАДИКАЛОВ", u: "https://t.me/c/2283029399/240", c: "⚔️ ТЕМНЫЕ ИСКУССТВА"},
 
-            // ❤️ СОБЛАЗНЕНИЕ
+            // === ❤️ СОБЛАЗНЕНИЕ ===
             {t: "ЧЕГО ХОТЯТ ЖЕНЩИНЫ (ЧАСТЬ 1)", u: "https://t.me/c/2283029399/68", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "ЧЕГО ХОТЯТ ЖЕНЩИНЫ (ЧАСТЬ 2)", u: "https://t.me/c/2283029399/71", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "ЧЕГО ХОТЯТ ЖЕНЩИНЫ (ЧАСТЬ 3)", u: "https://t.me/c/2283029399/74", c: "❤️ СОБЛАЗНЕНИЕ"},
@@ -452,7 +437,7 @@
             {t: "ВЗАИМОДЕЙСТВИЕ С ИСТЕРОИДНЫМИ", u: "https://t.me/c/2283029399/56", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "ЖЕНСКИЕ ПРОВЕРКИ", u: "https://t.me/c/2283029399/87", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "НЕПРИГОДКИ", u: "https://t.me/c/2283029399/92", c: "❤️ СОБЛАЗНЕНИЕ"},
-            {t: "ЖЕНСКИЕ ПРОВЕРКИ", u: "https://t.me/c/2283029399/99", c: "❤️ СОБЛАЗНЕНИЕ"},
+            {t: "ЖЕНЩИНЫ И ЧУВСТВО ДОЛГА", u: "https://t.me/c/2283029399/99", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "БАЛАНС ЗНАЧИМОСТИ", u: "https://t.me/c/2283029399/105", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "WOMANSPLAINING", u: "https://t.me/c/2283029399/149", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "ПОЧЕМУ ТЫ ВЛЮБЛЯЕШЬСЯ?", u: "https://t.me/c/2283029399/181", c: "❤️ СОБЛАЗНЕНИЕ"},
@@ -466,7 +451,7 @@
             {t: "ПОСТ-СЕКС", u: "https://t.me/c/2283029399/417", c: "❤️ СОБЛАЗНЕНИЕ"},
             {t: "ГАЙД НА СЗ (PDF)", u: "https://t.me/c/2283029399/154", c: "❤️ СОБЛАЗНЕНИЕ"},
 
-            // 🧪 РАДИКАЛЬНОЕ УЛУЧШЕНИЕ ЗДОРОВЬЯ
+            // === 🧪 РАДИКАЛЬНОЕ УЛУЧШЕНИЕ ЗДОРОВЬЯ ===
             {t: "ПРАВИЛА", u: "https://t.me/c/2283029399/81", c: "🧪 ЗДОРОВЬЕ"},
             {t: "АНАЛИЗЫ: ЗАЧЕМ", u: "https://t.me/c/2283029399/100", c: "🧪 ЗДОРОВЬЕ"},
             {t: "АНАЛИЗЫ: СПИСОК", u: "https://t.me/c/2283029399/101", c: "🧪 ЗДОРОВЬЕ"},
@@ -500,7 +485,7 @@
             {t: "ВЛЕЧЕНИЕ Ч.3", u: "https://t.me/c/2283029399/414", c: "🧪 ЗДОРОВЬЕ"},
             {t: "ВЛЕЧЕНИЕ Ч.4", u: "https://t.me/c/2283029399/422", c: "🧪 ЗДОРОВЬЕ"},
 
-            // 👁 БОРЬБА С ИНФОХИМЕРАМИ
+            // === 👁 БОРЬБА С ИНФОХИМЕРАМИ ===
             {t: "ИНФОРМАЦИОННЫЕ ХИМЕРЫ", u: "https://t.me/c/2283029399/64", c: "👁 ИНФОХИМЕРЫ"},
             {t: "BULLSHIT-ДЕТЕКТОР", u: "https://t.me/c/2283029399/73", c: "👁 ИНФОХИМЕРЫ"},
             {t: "ВБРОСЫ", u: "https://t.me/c/2283029399/80", c: "👁 ИНФОХИМЕРЫ"},
@@ -517,7 +502,7 @@
             {t: "ИНВЕРСИЯ МОРАЛИ", u: "https://t.me/c/2283029399/424", c: "👁 ИНФОХИМЕРЫ"},
             {t: "ДОМАШНЕЕ ЗАДАНИЕ", u: "https://t.me/c/2283029399/307", c: "👁 ИНФОХИМЕРЫ"},
 
-            // 💊 ТАБЛЕТКА ОТ ИНФАНТИЛЬНОСТИ
+            // === 💊 ТАБЛЕТКА ОТ ИНФАНТИЛЬНОСТИ ===
             {t: "МАСШТАБ", u: "https://t.me/c/2283029399/221", c: "💊 ИНФАНТИЛЬНОСТЬ"},
             {t: "ЭГО-СОСТОЯНИЯ", u: "https://t.me/c/2283029399/325", c: "💊 ИНФАНТИЛЬНОСТЬ"},
             {t: "ГЕШТАЛЬТ-ДЕРЬМО", u: "https://t.me/c/2283029399/370", c: "💊 ИНФАНТИЛЬНОСТЬ"},
@@ -525,7 +510,7 @@
             {t: "ТРЕУГОЛЬНИК КАРПМАНА", u: "https://t.me/c/2283029399/220", c: "💊 ИНФАНТИЛЬНОСТЬ"},
             {t: "СМЕЩЕННАЯ АКТИВНОСТЬ", u: "https://t.me/c/2283029399/335", c: "💊 ИНФАНТИЛЬНОСТЬ"},
 
-            // 🚭 БОРЬБА С ЗАВИСИМОСТЯМИ
+            // === 🚭 БОРЬБА С ЗАВИСИМОСТЯМИ ===
             {t: "INTRO", u: "https://t.me/c/2283029399/70", c: "🚭 ЗАВИСИМОСТИ"},
             {t: "ПРАВИЛА ВЫЯВЛЕНИЯ", u: "https://t.me/c/2283029399/98", c: "🚭 ЗАВИСИМОСТИ"},
             {t: "ФОРМИРОВАНИЕ", u: "https://t.me/c/2283029399/102", c: "🚭 ЗАВИСИМОСТИ"},
@@ -535,7 +520,7 @@
             {t: "АШКУДЭ Ч.1", u: "https://t.me/c/2283029399/345", c: "🚭 ЗАВИСИМОСТИ"},
             {t: "АШКУДЭ Ч.2", u: "https://t.me/c/2283029399/388", c: "🚭 ЗАВИСИМОСТИ"},
 
-            // 👔 СТИЛЬ — ЭТО ВСЁ
+            // === 👔 СТИЛЬ — ЭТО ВСЁ ===
             {t: "РУБАШКА", u: "https://t.me/c/2283029399/162", c: "👔 СТИЛЬ"},
             {t: "БАЗА (ТРИ АПОСТОЛА)", u: "https://t.me/c/2283029399/200", c: "👔 СТИЛЬ"},
             {t: "СТРИТ Ч.1", u: "https://t.me/c/2283029399/316", c: "👔 СТИЛЬ"},
@@ -544,630 +529,539 @@
             {t: "ОБУВЬ СТРИТ", u: "https://t.me/c/2283029399/378", c: "👔 СТИЛЬ"},
             {t: "КЭЖУАЛ Ч.1", u: "https://t.me/c/2283029399/426", c: "👔 СТИЛЬ"},
 
-            // 🏛 ФУНДАМЕНТ (Остались только Отчеты)
-            {t: "Гайд на сайты знакомств (Файл)", u: "https://t.me/masonsmansion/309", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
-            {t: "Отчет Инквизиции #1", u: "https://t.me/masonsmansion/392", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
-            {t: "Отчет Инквизиции #2", u: "https://t.me/masonsmansion/428", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
-            {t: "Отчет Инквизиции #3", u: "https://t.me/masonsmansion/507", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
-            {t: "Зачем мы предлагаем тебе Инквизицию?", u: "https://t.me/masonsmansion/521", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" }
+            // === 🏛 ФУНДАМЕНТ (ОТЧЕТЫ) ===
+            { t: "Гайд на сайты знакомств (Файл)", u: "https://t.me/c/2283029399/154", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
+            { t: "ВАЖНОЕ ОБЪЯВЛЕНИЕ", u: "https://t.me/c/2280119414/1/141", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
+            { t: "Отчет Инквизиции #1", u: "https://t.me/masonsmansion/392", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
+            { t: "Отчет Инквизиции #2", u: "https://t.me/masonsmansion/428", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
+            { t: "Отчет Инквизиции #3", u: "https://t.me/masonsmansion/507", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
+            { t: "Куда пойти на свиданку (Гайд)", u: "https://t.me/masonsmansion/430", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)" },
+            {t: "УРОБОРОС", u: "https://t.me/c/2283029399/309", c: "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)"},
+
+            // === 🎭 НЛП И СИ ===
+            {t: "Введение в нейролингивстическое программирование", u: "https://t.me/c/2280119414/10/26", c: "🎭 НЛП И СИ"},
+            {t: "Субмодальное кодирование и сдвиг", u: "https://t.me/c/2280119414/10/27", c: "🎭 НЛП И СИ"},
+            {t: "Работа с акцентуациями характера", u: "https://t.me/c/2280119414/10/251", c: "🎭 НЛП И СИ"},
+            {t: "Внешний вид радикалов", u: "https://t.me/c/2280119414/10/252", c: "🎭 НЛП И СИ"},
+            {t: "Введение в социальную инженерию", u: "https://t.me/c/2280119414/10/95", c: "🎭 НЛП И СИ"},
+            {t: "Принципы атаки и защиты", u: "https://t.me/c/2280119414/10/199", c: "🎭 НЛП И СИ"},
+            {t: "Как не стать лохом", u: "https://t.me/c/2280119414/10/341", c: "🎭 НЛП И СИ"},
+
+            // === ⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ ===
+            {t: "Как отношения с родителями влияют на ВСЮ твою жизнь?", u: "https://t.me/c/2280119414/5/15", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Тульповодство: Часть 1", u: "https://t.me/c/2280119414/5/17", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Тульповодство: Часть 2", u: "https://t.me/c/2280119414/5/170", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Смерть близких, личный опыт", u: "https://t.me/c/2280119414/5/21", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Друг или враг?", u: "https://t.me/c/2280119414/5/29", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Как сломать своё однобокое мышление?", u: "https://t.me/c/2280119414/5/30", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Как не поехать кукухой, когда всё идёт по пизде?", u: "https://t.me/c/2280119414/5/30", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Найти своё место в ЛЮБОМ обществе", u: "https://t.me/c/2280119414/5/37", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Синдром самозванца", u: "https://t.me/c/2280119414/5/90", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Теневая личность по Юнгу", u: "https://t.me/c/2280119414/5/32", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Смещенная активность", u: "https://t.me/c/2280119414/5/313", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"},
+            {t: "Игрища говна и мочи: введение", u: "https://t.me/c/2280119414/5/246", c: "⚡️ ЭКСТРЕМАЛЬНАЯ ПСИХОЛОГИЯ"}
         ];
 
+        // === СИСТЕМНАЯ ЧАСТЬ ===
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        tg.setHeaderColor('#140305');
-        tg.setBackgroundColor('#140305');
+        try { tg.expand(); tg.setHeaderColor('#140508'); } catch(e){}
 
-        const STATE_KEY = 'mm_hub_state_v10'; 
-        const READ_KEY = 'mm_read_posts';
-        const FAV_KEY = 'mm_favorites';
-        const NOTIFIED_KEY = 'mm_notified_achievements'; 
-        const STATE_TTL = 15 * 60 * 1000; 
+        const KEY_READ = 'inq_read_vFinal2';
+        const KEY_FAV = 'inq_fav_vFinal2';
+        const KEY_NOTIFIED = 'inq_notified_vFinal2';
 
-        // === АЧИВКИ ===
         const ACHIEVEMENTS_CONFIG = {
-            "💀": { name: "ВЫЖИВШИЙ", icon: "💀", color: "#e74c3c", msg: "Ты прошел ад и выжил. Это только начало." },
-            "👁": { name: "КРИТИК", icon: "👁", color: "#3498db", msg: "Ты видишь сквозь ложь и инфохимеры." },
-            "❤️": { name: "ИСКУСИТЕЛЬ", icon: "❤️", color: "#e056fd", msg: "Ты овладел искусством соблазнения." },
+            "💀": { name: "АДСКОЕ ПЕКЛО", icon: "💀", color: "#e74c3c", msg: "Тебе знаком привкус адского пекла." },
+            "👁": { name: "КРИТИК", icon: "👁", color: "#3498db", msg: "Ты видишь сквозь ложь." },
+            "❤️": { name: "ИСКУСИТЕЛЬ", icon: "❤️", color: "#e056fd", msg: "Женский мозг для тебя больше не загадка." },
             "⚔️": { name: "КУКЛОВОД", icon: "⚔️", color: "#f39c12", msg: "Темные искусства теперь служат тебе." },
-            "🛡": { name: "СКАЛА", icon: "🛡", color: "#f1c40f", msg: "Твой разум защищен. Твоя воля непоколебима." },
-            "🧪": { name: "БИОХАКЕР", icon: "🧪", color: "#2ecc71", msg: "Биохимия и здоровье выведены на новый уровень." },
-            "🏛": { name: "ИНКВИЗИТОР", icon: "🏛", color: "#FFFFF0", msg: "Ты изучил все отчеты ордена." }
+            "🛡": { name: "НЕПОКОЛЕБИМЫЙ", icon: "🛡", color: "#f1c40f", msg: "Твой разум защищен." },
+            "🧪": { name: "МАШИНА", icon: "🧪", color: "#2ecc71", msg: "Тело выведено на новый уровень." },
+            "🏛": { name: "ВНИМАТЕЛЬНЫЙ", icon: "🏛", color: "#FFFFF0", msg: "Ты изучил все отчеты Инквизиции." },
+            "💊": { name: "ВЗРОСЛЫЙ", icon: "💊", color: "#3498db", msg: "Инфантильность уничтожена." },
+            "🚭": { name: "Я СВОБОДЕН", icon: "🚭", color: "#f1c40f", msg: "Зависимости повержены." },
+            "👔": { name: "ЭСТЕТ", icon: "👔", color: "#9b59b6", msg: "Стиль — твое оружие." },
+            "🎭": { name: "МАНИПУЛЯТОР", icon: "🎭", color: "#e74c3c", msg: "Вручить тебе книгу по красной психологии?)" },
+            "⚡️": { name: "ПСИХОНАВТ", icon: "⚡️", color: "#FFFFF0", msg: "Психика под контролем." }
         };
 
-        let pendingAchievements = [];
+        // UI ЭЛЕМЕНТЫ
+        const UI = {
+            home: document.getElementById('homeWrapper'),
+            list: document.getElementById('listViewContainer'),
+            tiles: document.getElementById('homeTilesContainer'),
+            posts: document.getElementById('postsContainer'),
+            back: document.getElementById('backToHomeBtn'),
+            search: document.getElementById('searchInput'),
+            tags: document.getElementById('tagsContainer'),
+            sheet: document.getElementById('postSheet'),
+            overlay: document.getElementById('modalOverlay'),
+            favBtn: document.getElementById('favBtn')
+        };
 
-        const categoriesMap = new Map();
-        if (typeof postsDB !== 'undefined') {
-            postsDB.forEach(item => {
-                const parts = item.c.split(' ');
-                const icon = parts[0];
-                const name = parts.slice(1).join(' ');
-                if (!categoriesMap.has(item.c)) {
-                    categoriesMap.set(item.c, { icon, name, full: item.c, count: 0 });
-                }
-                categoriesMap.get(item.c).count++;
-            });
-        }
-        
-        const uniqueCategoriesList = Array.from(categoriesMap.values());
-        
-        let currentViewState = 'home';
-        let currentCategory = null;
-        let searchQuery = "";
+        let currentCat = null;
+        let searchQ = "";
+        let celebrationQueue = [];
 
-        const listHeader = document.getElementById('listHeader');
-        const backToHomeBtn = document.getElementById('backToHomeBtn');
-        const homeTilesContainer = document.getElementById('homeTilesContainer');
-        const listViewContainer = document.getElementById('listViewContainer');
-        const postsContainer = document.getElementById('postsContainer');
-        const searchInput = document.getElementById('searchInput');
-        const tagsContainer = document.getElementById('tagsContainer');
-        const mainContent = document.getElementById('mainContent');
-        const homeWrapper = document.getElementById('homeWrapper');
-        const randomBtn = document.getElementById('randomBtn');
-        const achievementsRow = document.getElementById('achievementsRow');
-        
-        const modalOverlay = document.getElementById('modalOverlay');
-        const postSheet = document.getElementById('postSheet');
-        const sheetTitle = document.getElementById('sheetTitle');
-        const sheetCategory = document.getElementById('sheetCategory');
-        const sheetActions = document.getElementById('sheetActions');
-        const readBtn = document.getElementById('readBtn');
-        const favSheetBtn = document.getElementById('favSheetBtn');
-        const shareBtn = document.getElementById('shareBtn');
-        const lockedBtn = document.getElementById('lockedBtn');
-        const relatedContainer = document.getElementById('relatedContainer');
-        const upsellBtn = document.getElementById('upsellBtn');
-        
-        const celebrationModal = document.getElementById('celebrationModal');
-        const celIcon = document.getElementById('celIcon');
-        const celName = document.getElementById('celName');
-        const celMsg = document.getElementById('celMsg');
-        const celBtn = document.querySelector('.cel-btn');
-        const toast = document.getElementById('toast');
+        // === ЛОГИКА ===
+        function safeVib(type='light') { try { tg.HapticFeedback.impactOccurred(type); } catch(e){} }
 
-        function showToast(msg) {
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+        function getRead() { try { return JSON.parse(localStorage.getItem(KEY_READ) || '[]'); } catch(e){ return []; } }
+        function getNotified() { try { return JSON.parse(localStorage.getItem(KEY_NOTIFIED) || '[]'); } catch(e){ return []; } }
+        
+        function saveRead(u) {
+            let l = getRead();
+            if(!l.includes(u)) { 
+                l.push(u); 
+                localStorage.setItem(KEY_READ, JSON.stringify(l)); 
+                updateProgress(true); 
+                return true; 
+            }
+            return false;
         }
 
-        function getNotified() { return JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '[]'); }
-        function addNotified(id) { 
-            const list = getNotified();
-            if(!list.includes(id)) { list.push(id); localStorage.setItem(NOTIFIED_KEY, JSON.stringify(list)); }
+        function getFav() { try { return JSON.parse(localStorage.getItem(KEY_FAV) || '[]'); } catch(e){ return []; } }
+        function toggleFav(u) {
+            let l = getFav();
+            if(l.includes(u)) l=l.filter(x=>x!==u); else l.push(u);
+            localStorage.setItem(KEY_FAV, JSON.stringify(l));
+            updateFavUI();
+            return l.includes(u);
         }
 
-        function closeCelModal() {
-            celebrationModal.classList.remove('active');
-            if(pendingAchievements.length > 0) {
-                setTimeout(showNextAchievement, 500);
+        function updateFavUI() {
+            const f = getFav();
+            if(f.length > 0) {
+                UI.favBtn.style.display = 'flex';
+                document.getElementById('favCountMain').innerText = f.length;
+            } else {
+                UI.favBtn.style.display = 'none';
             }
         }
 
-        function showNextAchievement() {
-            if(pendingAchievements.length === 0) return;
-            const next = pendingAchievements.shift(); 
-            
-            celIcon.innerText = next.icon;
-            celName.innerText = next.name;
-            celMsg.innerText = next.msg || "Достижение разблокировано!";
-            
-            celName.style.color = "#FFFFF0";
-            celName.style.textShadow = "none";
-            celIcon.style.filter = "none";
-            celBtn.style.background = "var(--accent)";
-            celBtn.style.color = "#272727";
-            celBtn.style.boxShadow = "none";
-            document.querySelector('.celebration-card').style.borderColor = "var(--accent)";
-            document.querySelector('.celebration-card').style.boxShadow = "none";
-
-            if(next.color && next.id !== "SUPERHUMAN") {
-                celName.style.color = next.color;
-                celName.style.textShadow = `0 0 15px ${next.color}66`;
-                celIcon.style.filter = `drop-shadow(0 0 20px ${next.color})`;
-                celBtn.style.background = next.color;
-                celBtn.style.boxShadow = `0 5px 20px ${next.color}66`;
-                document.querySelector('.celebration-card').style.borderColor = next.color;
-                document.querySelector('.celebration-card').style.boxShadow = `0 0 50px ${next.color}33`;
-            } else if(next.id === "SUPERHUMAN") {
-                celName.style.color = "#FFFFF0";
-                celName.style.textShadow = "0 0 20px rgba(255, 255, 240, 0.8)";
-                celIcon.style.filter = "drop-shadow(0 0 30px #FFFFF0)";
-                celBtn.style.background = "linear-gradient(90deg, #FFFFF0, #cf0a0a, #FFFFF0)";
-                celBtn.style.color = "#000";
-                document.querySelector('.celebration-card').style.borderColor = "#FFFFF0";
-            }
-
-            tg.HapticFeedback.impactOccurred('heavy');
-            celebrationModal.classList.add('active');
-            addNotified(next.id);
-        }
-
-        function updateProgress() {
-            if (typeof postsDB === 'undefined') return;
-            
-            const totalPosts = postsDB.filter(item => !item.locked).length;
-            const readList = getRead();
-            const validReadCount = postsDB.filter(item => !item.locked && readList.includes(item.u)).length;
-
-            let percent = 0;
-            if (totalPosts > 0) percent = Math.round((validReadCount / totalPosts) * 100);
-
-            // === ЛОГИКА РАНГОВ ===
-            let rank = "ПОСЛЕДОВАТЕЛЬ"; // 0-10%
-            if (percent >= 10) rank = "СТРАЖ ЗНАНИЙ";
-            if (percent >= 30) rank = "КОНСУЛ";
-            if (percent >= 50) rank = "ПОСОЛ ИНКВИЗИЦИИ";
-            if (percent >= 75) rank = "ОРАКУЛ";
-            if (percent >= 100) rank = "СВЕРХЧЕЛОВЕК";
-
+        function updateProgress(silent = false) {
+            const r = getRead();
             const notified = getNotified();
+            const tot = postsDB.length;
+            const done = postsDB.filter(x=>r.includes(x.u)).length;
+            const per = tot ? Math.round((done/tot)*100) : 0;
+
+            document.getElementById('progressBar').style.width = per + '%';
+            document.getElementById('progressStats').innerText = `${done}/${tot} (${per}%)`;
+
+            let rank = "ПОСЛЕДОВАТЕЛЬ";
+            if(per>=10) rank = "СТРАЖ";
+            if(per>=30) rank = "КОНСУЛ";
+            if(per>=50) rank = "ПОСОЛ";
+            if(per>=75) rank = "ОРАКУЛ";
+            if(per>=100) rank = "БОГ";
             
-            uniqueCategoriesList.forEach(cat => {
-                const config = ACHIEVEMENTS_CONFIG[cat.icon];
-                if(!config) return;
+            const rn = document.getElementById('rankName');
+            rn.innerText = rank;
+            if(rank==="БОГ") rn.classList.add('gold'); else rn.classList.remove('gold');
+
+            const box = document.getElementById('achievementsRow');
+            box.innerHTML = '';
+            const cats = [...new Set(postsDB.map(x=>x.c))];
+            let allCatsUnlocked = true;
+            
+            cats.forEach(c => {
+                const icon = c.substring(0,2).trim();
+                const items = postsDB.filter(x=>x.c===c);
+                const isFull = items.every(x=>r.includes(x.u));
+                if (!isFull) allCatsUnlocked = false;
                 
-                const catPosts = postsDB.filter(p => p.c === cat.full);
-                const catRead = catPosts.filter(p => readList.includes(p.u)).length;
+                const conf = ACHIEVEMENTS_CONFIG[icon];
                 
-                if (catPosts.length > 0 && catRead === catPosts.length) {
-                    if(!notified.includes(cat.full)) {
-                        if(!pendingAchievements.find(p => p.id === cat.full)) {
-                            pendingAchievements.push({
-                                id: cat.full,
-                                name: config.name,
-                                icon: config.icon,
-                                color: config.color,
-                                msg: config.msg
-                            });
+                const b = document.createElement('div');
+                b.className = `badge ${isFull?'unlocked':''}`;
+                b.innerText = icon;
+                
+                if(isFull && conf) {
+                    b.style.borderColor = conf.color;
+                    b.style.boxShadow = `0 0 10px ${conf.color}44`;
+                    // Показываем полученную ачивку
+                    b.onclick = () => showCel(icon, conf.name, conf.msg, conf.color);
+
+                    if (!notified.includes(c)) {
+                        if (!celebrationQueue.find(item => item.id === c)) {
+                             celebrationQueue.push({ id: c, icon: icon, title: conf.name, msg: conf.msg, color: conf.color });
                         }
                     }
+                } else if(conf) {
+                    // Клик по ЗАКРЫТОЙ ачивке
+                    b.onclick = () => showLockedModal(icon, c);
                 }
+                box.appendChild(b);
             });
 
-            if (percent === 100) {
-                if(!notified.includes("SUPERHUMAN")) {
-                    if(!pendingAchievements.find(p => p.id === "SUPERHUMAN")) {
-                        pendingAchievements.push({
-                            id: "SUPERHUMAN",
-                            name: "СВЕРХЧЕЛОВЕК",
-                            icon: "⚡️",
-                            msg: "Ты прошел весь путь. Ты видел всё. Теперь ты создаешь реальность."
+            // === СЕКРЕТНЫЙ БЕЙДЖ (SUPERHUMAN) ===
+            const isSuper = (per === 100 && allCatsUnlocked);
+            const superBadge = document.createElement('div');
+            
+            if (isSuper) {
+                // ОТКРЫТО
+                superBadge.className = 'badge unlocked';
+                // ТУТ ИКОНКА ГЛАЗА SVG
+                superBadge.innerHTML = `<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#FFD700;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
+                superBadge.style.borderColor = "#FFD700";
+                superBadge.style.boxShadow = "0 0 15px rgba(255, 215, 0, 0.4)";
+                
+                superBadge.onclick = () => showCel("⚡️", "СВЕРХЧЕЛОВЕК", "Ты достиг абсолюта. Теперь ты создаешь реальность.", "#FFD700", true);
+
+                // Очередь поздравления
+                const superId = "SUPERHUMAN";
+                if (!notified.includes(superId)) {
+                    if (!celebrationQueue.find(item => item.id === superId)) {
+                        celebrationQueue.push({ 
+                            id: superId, 
+                            icon: "⚡️", 
+                            title: "СВЕРХЧЕЛОВЕК", 
+                            msg: "Ты достиг абсолюта. Теперь ты создаешь реальность.", 
+                            isSuper: true 
                         });
                     }
                 }
-            }
-
-            const progressBar = document.getElementById('progressBar');
-            const rankName = document.getElementById('rankName');
-            const progressStats = document.getElementById('progressStats');
-            const progressCard = document.getElementById('progressCard');
-
-            if (progressBar && rankName) {
-                progressBar.style.width = percent + '%';
-                rankName.innerText = rank;
-                progressStats.innerText = `${validReadCount}/${totalPosts} (${percent}%)`;
-
-                rankName.className = 'rank-name';
-                progressCard.className = 'progress-card glide-entry';
-
-                if (rank === "СВЕРХЧЕЛОВЕК") {
-                    rankName.classList.add('ascended-text');
-                    progressCard.classList.add('ascended');
-                }
-            }
-
-            renderAchievements(readList);
-        }
-
-        function renderAchievements(readList) {
-            achievementsRow.innerHTML = '';
-            
-            uniqueCategoriesList.forEach(cat => {
-                const config = ACHIEVEMENTS_CONFIG[cat.icon];
-                if(!config) return;
-
-                const catPosts = postsDB.filter(p => p.c === cat.full);
-                const catTotal = catPosts.length;
-                if(catTotal === 0) return;
-
-                const catRead = catPosts.filter(p => readList.includes(p.u)).length;
-                const isUnlocked = catRead === catTotal;
-
-                const badge = document.createElement('div');
-                badge.className = `badge ${isUnlocked ? 'unlocked' : ''}`;
-                badge.innerText = config.icon;
-                
-                if(isUnlocked) {
-                    badge.style.borderColor = config.color;
-                    badge.style.color = "#fff";
-                    badge.style.boxShadow = `0 0 10px ${config.color}88`;
-                    badge.style.background = `${config.color}33`;
-                } else {
-                    badge.style.borderColor = "rgba(255, 255, 240, 0.1)";
-                    badge.style.color = "rgba(255, 255, 240, 0.2)";
-                    badge.style.boxShadow = "none";
-                    badge.style.background = "rgba(0,0,0,0.3)";
-                }
-                
-                badge.onclick = () => {
-                    tg.HapticFeedback.impactOccurred('light');
-                    if(isUnlocked) {
-                        celIcon.innerText = config.icon;
-                        celName.innerText = config.name;
-                        celMsg.innerText = config.msg;
-                        
-                        celName.style.color = config.color;
-                        celName.style.textShadow = `0 0 15px ${config.color}66`;
-                        celIcon.style.filter = `drop-shadow(0 0 20px ${config.color})`;
-                        celBtn.style.background = config.color;
-                        celBtn.style.boxShadow = `0 5px 20px ${config.color}66`;
-                        document.querySelector('.celebration-card').style.borderColor = config.color;
-                        
-                        celebrationModal.classList.add('active');
-                    } else {
-                        showToast(`Прочитай раздел ${cat.icon}, чтобы открыть`);
-                    }
+            } else {
+                // ЗАКРЫТО (ЗАГАДОЧНЫЙ ЗНАК ВОПРОСА)
+                superBadge.className = 'badge secret-badge';
+                superBadge.innerText = "?";
+                superBadge.onclick = () => {
+                    safeVib('light');
+                    document.getElementById('celIcon').innerText = "👁";
+                    document.getElementById('celName').innerText = "ТАЙНОЕ ЗНАНИЕ";
+                    document.getElementById('celName').style.color = "#666";
+                    document.getElementById('celName').style.textShadow = "none";
+                    document.getElementById('celMsg').innerText = "Открой все достижения, чтобы узнать, что здесь скрыто.";
+                    document.getElementById('celCard').style.background = "#111";
+                    document.getElementById('celCard').style.borderColor = "#333";
+                    document.getElementById('celCard').style.boxShadow = "none";
+                    document.getElementById('celCloseBtn').style.background = "#333";
+                    document.getElementById('celCloseBtn').innerText = "ЗАКРЫТЬ";
+                    document.getElementById('celebrationModal').classList.add('active');
                 };
+            }
+            box.appendChild(superBadge);
 
-                achievementsRow.appendChild(badge);
-            });
+            updateFavUI();
+        }
+
+        function showLockedModal(icon, catName) {
+            safeVib('light');
+            const card = document.getElementById('celCard');
+            const btn = document.getElementById('celCloseBtn');
             
-            const isAscended = getNotified().includes("SUPERHUMAN");
-            const ascendedBadge = document.createElement('div');
-            ascendedBadge.className = `badge secret ${isAscended ? 'unlocked' : ''}`;
-            ascendedBadge.innerText = isAscended ? "⚡️" : "?";
-            ascendedBadge.onclick = () => {
-                if(isAscended) {
-                    celIcon.innerText = "⚡️";
-                    celName.innerText = "СВЕРХЧЕЛОВЕК";
-                    celMsg.innerText = "Ты прошел весь путь. Ты видел всё.";
-                    celName.style.color = "#FFFFF0";
-                    celIcon.style.filter = "drop-shadow(0 0 30px #FFFFF0)";
-                    celBtn.style.background = "linear-gradient(90deg, #FFFFF0, #cf0a0a, #FFFFF0)";
-                    celBtn.style.color = "#000";
-                    document.querySelector('.celebration-card').style.borderColor = "#FFFFF0";
-                    celebrationModal.classList.add('active');
+            // Сброс стиля
+            card.className = "celebration-card";
+            card.style.background = "#111";
+            card.style.borderColor = "#333";
+            card.style.boxShadow = "none";
+            
+            document.getElementById('celIcon').innerText = "🔒";
+            document.getElementById('celName').innerText = "ЗАКРЫТО";
+            document.getElementById('celName').style.color = "#666";
+            document.getElementById('celName').style.textShadow = "none";
+            
+            document.getElementById('celMsg').innerHTML = `Чтобы получить достижение, изучи все материалы в разделе:<br><br><span style="color:#fff; font-weight:bold;">${catName}</span>`;
+            
+            btn.style.background = "#333";
+            btn.style.color = "#888";
+            btn.innerText = "ЯСНО";
+            
+            document.getElementById('celebrationModal').classList.add('active');
+        }
+
+        function playPendingAnimations() {
+            if (celebrationQueue.length > 0) {
+                const next = celebrationQueue.shift();
+                let notified = getNotified();
+                if (!notified.includes(next.id)) {
+                    notified.push(next.id);
+                    localStorage.setItem(KEY_NOTIFIED, JSON.stringify(notified));
+                    showCel(next.icon, next.title, next.msg, next.color, next.isSuper);
                 } else {
-                    showToast("Секретное достижение. Открой всё.");
+                    playPendingAnimations();
                 }
-            };
-            achievementsRow.appendChild(ascendedBadge);
-        }
-
-        function getRead() { return JSON.parse(localStorage.getItem(READ_KEY) || '[]'); }
-        function setRead(url) { 
-            const list = getRead();
-            if(!list.includes(url)) { 
-                list.push(url); 
-                localStorage.setItem(READ_KEY, JSON.stringify(list)); 
-                updateProgress(); 
             }
         }
-        
-        function getFav() { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); }
-        function toggleFav(url) {
-            let list = getFav();
-            if(list.includes(url)) list = list.filter(u => u !== url);
-            else list.push(url);
-            localStorage.setItem(FAV_KEY, JSON.stringify(list));
-            return list.includes(url);
-        }
 
-        function adjustPadding() {
-            requestAnimationFrame(() => {
-                const headerHeight = listHeader.offsetHeight;
-                mainContent.style.paddingTop = (headerHeight + 20) + 'px';
-            });
-        }
-
-        function saveState() {
-            try {
-                const state = { view: currentViewState, category: currentCategory, scroll: window.scrollY, search: searchQuery, ts: Date.now() };
-                localStorage.setItem(STATE_KEY, JSON.stringify(state));
-            } catch (e) {}
-        }
-
-        function restoreState() {
-            try {
-                const raw = localStorage.getItem(STATE_KEY);
-                if (!raw) return;
-                const state = JSON.parse(raw);
-                if (Date.now() - state.ts > STATE_TTL) { localStorage.removeItem(STATE_KEY); return; }
-
-                if (state.view === 'list') {
-                    if (state.category === "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)") showCredo(false);
-                    else switchToList(state.category, false);
-                    
-                    if (state.search) {
-                        searchQuery = state.search;
-                        searchInput.value = state.search;
-                        filterAndRenderList(false);
-                    }
-                    setTimeout(() => { window.scrollTo(0, state.scroll); }, 10);
-                }
-            } catch (e) {}
-        }
-
-        function switchToHome() {
-            currentViewState = 'home';
-            currentCategory = null;
-            searchQuery = "";
-            searchInput.value = "";
-            backToHomeBtn.style.display = 'none';
-            tagsContainer.style.display = 'none';
-            listViewContainer.style.display = 'none';
-            homeWrapper.style.display = 'block';
-            randomBtn.style.display = 'flex';
-            adjustPadding();
-            window.scrollTo({ top: 0 });
-            tg.HapticFeedback.impactOccurred('light');
-            localStorage.removeItem(STATE_KEY);
-            updateProgress();
+        function showCel(icon, title, msg, color, isSuper = false) {
+            safeVib('heavy');
+            const card = document.getElementById('celCard');
+            const btn = document.getElementById('celCloseBtn');
+            const nameEl = document.getElementById('celName');
             
-            // ВАЖНО: Ачивка вылетает ТОЛЬКО ТУТ
-            if(pendingAchievements.length > 0) {
-                setTimeout(showNextAchievement, 400);
-            }
-        }
+            // Сброс классов
+            card.className = "celebration-card";
 
-        function switchToList(category, animate = true) {
-            currentViewState = 'list';
-            currentCategory = category;
-            backToHomeBtn.style.display = 'flex';
-            tagsContainer.style.display = 'flex';
-            homeWrapper.style.display = 'none';
-            listViewContainer.style.display = 'block';
-            randomBtn.style.display = 'none';
-            renderTags();
-            filterAndRenderList(animate);
-            adjustPadding();
-            if(animate) window.scrollTo({ top: 0 });
-        }
-
-        function showCredo(animate = true) {
-            setupSpecialList("🏛 ФУНДАМЕНТ (ОТЧЕТЫ)", animate);
-        }
-
-        function setupSpecialList(catName, animate) {
-            currentViewState = 'list';
-            currentCategory = catName;
-            backToHomeBtn.style.display = 'flex';
-            tagsContainer.style.display = 'flex';
-            homeWrapper.style.display = 'none';
-            listViewContainer.style.display = 'block';
-            randomBtn.style.display = 'none';
-            tagsContainer.innerHTML = '';
-            const homeTag = document.createElement('div');
-            homeTag.className = 'tag';
-            homeTag.innerText = '← На Главную';
-            homeTag.onclick = switchToHome;
-            tagsContainer.appendChild(homeTag);
-            filterAndRenderList(animate);
-            adjustPadding();
-            if(animate) window.scrollTo({ top: 0 });
-        }
-
-        backToHomeBtn.addEventListener('click', switchToHome);
-
-        function renderHomeTiles() {
-            homeTilesContainer.innerHTML = '';
-            let animDelay = 0.2;
-            uniqueCategoriesList.forEach(catData => {
-                if(catData.full.includes("ФУНДАМЕНТ")) return; // Фундамент отдельно
+            if (isSuper) {
+                // SUPERHUMAN STYLE
+                card.classList.add('superhuman-card');
                 
-                const tile = document.createElement('div');
-                tile.className = 'category-tile glide-entry';
-                tile.style.animationDelay = `${animDelay}s`;
-                tile.innerHTML = `
-                    <div class="tile-icon">${catData.icon}</div>
-                    <div>
-                        <div class="tile-title">${catData.name}</div>
-                        <div class="tile-count">${catData.count} материалов</div>
-                    </div>
+                document.getElementById('celIcon').innerText = icon;
+                nameEl.innerText = title;
+                nameEl.style.color = "#FFD700";
+                nameEl.style.textShadow = "0 0 20px rgba(255, 215, 0, 0.8)";
+                
+                document.getElementById('celMsg').innerText = msg;
+                
+                btn.style.background = "linear-gradient(45deg, #FFD700, #ff0000)";
+                btn.style.color = "#000";
+                btn.innerText = "Я ГОТОВ";
+            } else {
+                // REGULAR STYLE
+                const accent = color || '#FFFFF0';
+                card.style.background = `linear-gradient(135deg, #000 0%, ${accent}22 100%)`;
+                card.style.borderColor = accent;
+                card.style.boxShadow = `0 0 30px ${accent}44`;
+                
+                document.getElementById('celIcon').innerText = icon;
+                nameEl.innerText = title;
+                nameEl.style.color = accent;
+                nameEl.style.textShadow = `0 0 15px ${accent}66`;
+                
+                document.getElementById('celMsg').innerText = msg;
+                
+                btn.style.background = accent;
+                btn.style.color = "#000";
+                btn.innerText = "ОТЛИЧНО";
+            }
+            
+            document.getElementById('celebrationModal').classList.add('active');
+        }
+
+        document.getElementById('celCloseBtn').onclick = () => {
+             document.getElementById('celebrationModal').classList.remove('active');
+             setTimeout(playPendingAnimations, 500);
+        };
+
+        // === РЕНДЕР ГЛАВНОЙ ===
+        function renderHome() {
+            UI.tiles.innerHTML = '';
+            const cnt = {};
+            postsDB.forEach(x => { if(x.c.includes("ФУНДАМЕНТ")) return; cnt[x.c] = (cnt[x.c]||0)+1; });
+
+            let delay = 0; 
+            Object.keys(cnt).forEach(c => {
+                const d = document.createElement('div');
+                d.className = 'category-tile anim-entry';
+                d.style.animationDelay = delay + 's';
+                d.innerHTML = `
+                    <div class="tile-icon">${c.substring(0,2)}</div>
+                    <div><div class="tile-title">${c.substring(2)}</div>
+                    <div class="tile-count">${cnt[c]} глав</div></div>
                 `;
-                tile.onclick = () => {
-                    tg.HapticFeedback.impactOccurred('medium');
-                    switchToList(catData.full);
-                };
-                homeTilesContainer.appendChild(tile);
-                animDelay += 0.05;
+                d.onclick = () => openList(c);
+                UI.tiles.appendChild(d);
+                delay += 0.05; 
             });
+        }
+
+        // === СПИСОК ===
+        function openList(cat) {
+            safeVib('medium');
+            currentCat = cat;
+            UI.home.style.display = 'none';
+            UI.list.style.display = 'block';
+            UI.back.style.display = 'flex';
+            UI.tags.style.display = 'flex';
+            document.getElementById('randomBtn').style.display = 'none';
+            
+            renderTags();
+            renderList(true); 
+            window.scrollTo(0,0);
         }
 
         function renderTags() {
-            tagsContainer.innerHTML = '';
-            const homeTag = document.createElement('div');
-            homeTag.className = 'tag';
-            homeTag.innerText = 'Все';
-            homeTag.onclick = () => { currentCategory = null; renderTags(); filterAndRenderList(true); };
-            if(currentCategory === null) homeTag.classList.add('active');
-            tagsContainer.appendChild(homeTag);
+            UI.tags.innerHTML = '';
+            const all = document.createElement('div');
+            all.className = `tag ${!currentCat?'active':''}`;
+            all.innerText = "ВСЕ";
+            all.onclick = () => { currentCat = null; renderTags(); renderList(); };
+            UI.tags.appendChild(all);
 
-            uniqueCategoriesList.forEach(catData => {
-                const btn = document.createElement('div');
-                btn.className = `tag ${catData.full === currentCategory ? 'active' : ''}`;
-                btn.innerText = catData.name;
-                btn.onclick = () => {
-                    currentCategory = catData.full;
-                    renderTags();
-                    filterAndRenderList(true);
-                    tg.HapticFeedback.impactOccurred('light');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                };
-                tagsContainer.appendChild(btn);
+            const cats = [...new Set(postsDB.map(x=>x.c))];
+            cats.forEach(c => {
+                const t = document.createElement('div');
+                t.className = `tag ${currentCat===c?'active':''}`;
+                t.innerText = c.substring(0,15); 
+                t.onclick = () => { currentCat=c; renderTags(); renderList(); safeVib('light'); };
+                UI.tags.appendChild(t);
             });
         }
 
-        function filterAndRenderList(animate = true) {
-            postsContainer.innerHTML = '';
-            let animationIndex = 0;
-            let filtered = [];
+        function renderList(animate = false) {
+            UI.posts.innerHTML = '';
+            const r = getRead();
+            const f = getFav();
 
-            if (currentCategory === "🏛 ФУНДАМЕНТ (ОТЧЕТЫ)") {
-                filtered = postsDB.filter(item => item.c.includes("ФУНДАМЕНТ"));
-            } else if (currentCategory === "⭐️ ИЗБРАННОЕ") {
-                const favs = getFav();
-                filtered = postsDB.filter(item => favs.includes(item.u));
-            } else {
-                filtered = postsDB.filter(item => {
-                    const catMatch = currentCategory ? item.c === currentCategory : true;
-                    const searchMatch = item.t.toLowerCase().includes(searchQuery.toLowerCase());
-                    return catMatch && searchMatch;
-                });
-            }
+            const filtered = postsDB.filter(p => {
+                let mc = true;
+                if(currentCat === 'FAV') mc = f.includes(p.u);
+                else if(currentCat) mc = p.c === currentCat;
+                const ms = p.t.toLowerCase().includes(searchQ.toLowerCase());
+                return mc && ms;
+            });
 
-            if (filtered.length === 0) {
-                const msg = currentCategory === "⭐️ ИЗБРАННОЕ" ? "В избранном пока пусто." : `По запросу "<b>${searchQuery}</b>" нихрена нет.`;
-                postsContainer.innerHTML = `
-                    <div class="empty-state glide-entry" style="animation-delay: 0.1s">
-                        <div style="font-size: 40px; margin-bottom: 10px;">🤫</div>
-                        <div>${msg}</div>
-                        <div style="margin-top: 5px; opacity: 0.7; font-size: 13px;">Ищи ответы в Инквизиции.</div>
-                        <button class="btn-inq-action" onclick="tg.openTelegramLink('https://t.me/GiftsHolyInquisition_bot')">
-                            ПОЛУЧИТЬ ДОСТУП ➤
-                        </button>
-                    </div>`;
+            if(filtered.length === 0) {
+                UI.posts.innerHTML = `<div style="text-align:center; opacity:0.5; margin-top:30px;">Пусто...</div>`;
                 return;
             }
 
-            const header = document.createElement('div');
-            header.className = animate ? 'section-header glide-entry' : 'section-header';
-            if(animate) header.style.animationDelay = '0.05s';
-            header.innerText = currentCategory ? currentCategory : `Результаты (${filtered.length})`;
-            postsContainer.appendChild(header);
+            const head = document.createElement('div');
+            head.className = 'section-header';
+            head.innerText = currentCat === 'FAV' ? 'ИЗБРАННОЕ' : (currentCat || 'ВСЕ ЗАПИСИ');
+            UI.posts.appendChild(head);
 
-            const readList = getRead();
-
-            filtered.forEach(item => {
-                const div = document.createElement('div');
-                const isRead = readList.includes(item.u);
+            let delay = 0;
+            filtered.forEach(p => {
+                const isR = r.includes(p.u);
+                const el = document.createElement('div');
+                el.className = `post-card ${isR?'is-read':''} ${animate?'anim-entry':''}`;
+                if(animate) el.style.animationDelay = delay + 's';
                 
-                let classes = animate ? 'post-card glide-entry' : 'post-card';
-                if(isRead) classes += ' is-read';
-                
-                div.className = classes;
-                if (animate) div.style.animationDelay = `${0.05 + (animationIndex * 0.03)}s`;
-                
-                let titleHtml = item.t;
-                if (searchQuery) {
-                    const regex = new RegExp(`(${searchQuery})`, 'gi');
-                    titleHtml = item.t.replace(regex, '<span class="highlight">$1</span>');
-                }
-                
-                let iconsHtml = '';
-                if(isRead) iconsHtml += '<span class="read-icon">✓</span>';
-
-                div.innerHTML = `<div class="post-title">${titleHtml} <span>${iconsHtml}</span></div>`;
-                div.onclick = () => { openSheet(item); };
-                postsContainer.appendChild(div);
-                animationIndex++;
+                el.innerHTML = `
+                    <div class="post-title">${p.t}</div> 
+                    <div class="read-marker" style="display:${isR?'inline-block':'none'}">ПРОЧИТАНО</div>
+                `;
+                el.onclick = () => openSheet(p);
+                UI.posts.appendChild(el);
+                delay += 0.03;
             });
         }
 
-        searchInput.addEventListener('input', (e) => {
-            searchQuery = e.target.value;
-            if (currentViewState === 'home' && searchQuery.length > 0) switchToList(null, true);
-            filterAndRenderList(true);
-        });
+        // === ШТОРКА (NEW DESIGN) ===
+        function openSheet(p) {
+            safeVib('light');
+            document.getElementById('sheetIcon').innerText = p.c.substring(0,2);
+            document.getElementById('sheetCategory').innerText = p.c.substring(2).trim();
+            document.getElementById('sheetTitle').innerText = p.t;
+            
+            const rBtn = document.getElementById('readBtn');
+            const isR = getRead().includes(p.u);
+            
+            if(isR) {
+                rBtn.style.opacity = "0.7";
+                rBtn.innerHTML = `<span>ПРОЧИТАНО</span><span>✓</span>`;
+            } else {
+                rBtn.style.opacity = "1";
+                rBtn.innerHTML = `<span>ЧИТАТЬ</span><span style="font-size:18px;">↗</span>`;
+            }
 
-        randomBtn.onclick = () => {
-            tg.HapticFeedback.impactOccurred('heavy');
-            const randomItem = postsDB[Math.floor(Math.random() * postsDB.length)];
-            openSheet(randomItem);
+            rBtn.onclick = () => {
+                safeVib();
+                saveRead(p.u);
+                rBtn.style.opacity = "0.7";
+                rBtn.innerHTML = `<span>ПРОЧИТАНО</span><span>✓</span>`;
+                if(UI.list.style.display==='block') renderList(false);
+                setTimeout(() => { window.open(p.u, '_blank'); }, 50);
+            };
+
+            const fBtn = document.getElementById('favSheetBtn');
+            const updateF = () => {
+                const isF = getFav().includes(p.u);
+                if(isF) fBtn.classList.add('active'); else fBtn.classList.remove('active');
+            };
+            updateF();
+            fBtn.onclick = () => { safeVib(); toggleFav(p.u); updateF(); };
+            
+            // SHARE BUTTON LOGIC (FLASH RED)
+            const sBtn = document.getElementById('shareBtn');
+            sBtn.onclick = () => {
+                safeVib();
+                sBtn.classList.add('flash-red');
+                setTimeout(() => sBtn.classList.remove('flash-red'), 300);
+                
+                window.open(`https://t.me/share/url?url=${encodeURIComponent(p.u)}&text=${encodeURIComponent(p.t)}`);
+            };
+
+            const relCon = document.getElementById('relatedContainer');
+            relCon.innerHTML = '';
+            const rels = postsDB.filter(x => x.c === p.c && x.u !== p.u).slice(0,3);
+            
+            if(rels.length === 0) relCon.innerHTML = "<div style='opacity:0.3; font-size:13px; margin-top:10px;'>Нет материалов</div>";
+            
+            rels.forEach(r => {
+                const d = document.createElement('div');
+                d.className = 'sheet-item';
+                d.innerHTML = `
+                    <span>${r.t}</span>
+                    <span class="sheet-arrow-icon">→</span>
+                `;
+                d.onclick = () => { UI.overlay.click(); setTimeout(()=>openSheet(r), 200); };
+                relCon.appendChild(d);
+            });
+
+            UI.overlay.classList.add('active');
+            document.getElementById('postSheet').classList.add('active');
         }
 
-        function openSheet(item) {
-            tg.HapticFeedback.impactOccurred('medium');
-            sheetTitle.innerText = item.t;
-            const catIcon = item.c.split(' ')[0];
-            sheetCategory.innerHTML = `<span style="font-size: 18px;">${catIcon}</span> ${item.c.substring(catIcon.length)}`;
-            
-            // Если пост locked - скрываем кнопки (хотя в этой БД locked нет, но на всякий случай)
-            sheetActions.style.display = 'flex';
-            lockedBtn.style.display = 'none';
-            
-            setRead(item.u);
-            
-            readBtn.onclick = () => {
-                tg.HapticFeedback.impactOccurred('light');
-                saveState();
-                tg.openTelegramLink(item.u);
-            };
+        // === НАВИГАЦИЯ ===
+        UI.overlay.onclick = () => {
+            UI.overlay.classList.remove('active');
+            document.getElementById('postSheet').classList.remove('active');
+        };
 
-            shareBtn.onclick = () => {
-                tg.HapticFeedback.impactOccurred('light');
-                const shareUrl = 'https://t.me/share/url?url=' + encodeURIComponent(item.u) + '&text=' + encodeURIComponent(item.t);
-                tg.openTelegramLink(shareUrl);
-            };
-
-            const isFav = getFav().includes(item.u);
-            updateFavBtnStyle(isFav);
-            favSheetBtn.onclick = () => {
-                tg.HapticFeedback.impactOccurred('light');
-                const newState = toggleFav(item.u);
-                updateFavBtnStyle(newState);
-            };
-
-            upsellBtn.onclick = () => {
-                tg.HapticFeedback.impactOccurred('light');
-                saveState();
-                tg.openTelegramLink('https://t.me/GiftsHolyInquisition_bot');
-            }
+        UI.back.onclick = () => {
+            safeVib();
+            currentCat = null;
+            searchQ = "";
+            UI.search.value = "";
             
-            const related = postsDB.filter(p => p.c === item.c && p.u !== item.u).sort(() => 0.5 - Math.random()).slice(0, 3);
-            relatedContainer.innerHTML = '';
-            if (related.length === 0) relatedContainer.innerHTML = '<div style="color:rgba(255,255,240,0.3); font-size:13px;">Нет похожих материалов</div>';
-            else {
-                related.forEach(rel => {
-                    const div = document.createElement('div');
-                    div.className = 'related-item';
-                    div.innerHTML = `<span>${rel.t}</span> <span class="related-arrow">→</span>`;
-                    div.onclick = () => { openSheet(rel); };
-                    relatedContainer.appendChild(div);
+            UI.list.style.display = 'none';
+            UI.home.style.display = 'block';
+            UI.back.style.display = 'none';
+            UI.tags.style.display = 'none';
+            document.getElementById('randomBtn').style.display = 'flex';
+            
+            updateProgress(); 
+            renderHome(); 
+            setTimeout(playPendingAnimations, 300);
+        };
+
+        document.getElementById('credoBtn').onclick = () => openList("🏛 ФУНДАМЕНТ (ОТЧЕТЫ)");
+        UI.favBtn.onclick = () => openList("FAV");
+        
+        document.getElementById('randomBtn').onclick = () => {
+            safeVib('heavy');
+            openSheet(postsDB[Math.floor(Math.random()*postsDB.length)]);
+        };
+
+        UI.search.addEventListener('input', (e) => {
+            searchQ = e.target.value;
+            if(searchQ && UI.home.style.display!=='none') openList(null);
+            renderList(false);
+        });
+
+        // === ФИКС ОТСТУПА ШАПКИ ===
+        function adjustPadding() {
+            const header = document.getElementById('listHeader');
+            const content = document.getElementById('mainContent');
+            if(header && content) {
+                requestAnimationFrame(() => {
+                    content.style.paddingTop = (header.offsetHeight + 20) + 'px';
                 });
             }
-            modalOverlay.classList.add('active');
-            postSheet.classList.add('active');
-            
-            if(!document.querySelector(`.post-card[onclick*="${item.u}"]`)?.classList.contains('is-read')) {
-                 filterAndRenderList(false);
-            }
         }
-
-        function updateFavBtnStyle(isActive) {
-            if(isActive) {
-                favSheetBtn.classList.add('active');
-                favSheetBtn.innerText = '⭐️';
-            } else {
-                favSheetBtn.classList.remove('active');
-                favSheetBtn.innerText = '☆';
-            }
-        }
-
-        function closeSheet() { 
-            modalOverlay.classList.remove('active'); 
-            postSheet.classList.remove('active'); 
-            // Здесь ачивку НЕ показываем! Она показывается только в switchToHome
-        }
-        
-        modalOverlay.addEventListener('click', closeSheet);
-
-        document.getElementById('credoBtn').addEventListener('click', () => {
-            tg.HapticFeedback.impactOccurred('medium');
-            showCredo(true);
-        });
-
-        if (typeof postsDB !== 'undefined') {
-            renderHomeTiles();
-            updateProgress();
-        }
-        adjustPadding();
-        restoreState();
         window.addEventListener('resize', adjustPadding);
+        
+        // Добавляем вызов в функции навигации
+        const originalSwitchList = openList;
+        openList = function(cat) {
+            originalSwitchList(cat);
+            adjustPadding();
+        };
+        
+        const originalBack = UI.back.onclick;
+        UI.back.onclick = function() {
+            originalBack();
+            adjustPadding();
+        };
 
+        // ЗАПУСК
+        renderHome();
+        updateProgress();
+        adjustPadding();
     </script>
 </body>
 </html>
