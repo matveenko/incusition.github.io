@@ -9,11 +9,11 @@ API_ID = os.environ['TG_API_ID']
 API_HASH = os.environ['TG_API_HASH']
 SESSION_STRING = os.environ['TG_SESSION']
 
-CHANNEL_USERNAME = 'masonsmansion' 
+
+CHANNEL_ID = -1002283029399 
 JSON_FILE = 'posts.json'
 
 # === 1. ГЛАВНЫЕ РУБРИКИ (Категории) ===
-# Один пост = Один главный смайл
 CATEGORY_EMOJI_MAP = {
     '💀': '💀 ЖИЗНЬ В АДУ',
     '👁': '👁 ИНФОХИМЕРЫ',
@@ -30,7 +30,6 @@ CATEGORY_EMOJI_MAP = {
 }
 
 # === 2. ПОДРУБРИКИ (Углубление) ===
-# Добавляй эти смайлы в текст, чтобы раскидать по папкам внутри рубрик.
 SUBCAT_EMOJI_MAP = {
     # --- ВНУТРИ ЗДОРОВЬЯ (🧪) ---
     '🩸': 'Анализы',
@@ -43,7 +42,7 @@ SUBCAT_EMOJI_MAP = {
     '🔞': 'Влечение',
 
     # --- ВНУТРИ ИНФОХИМЕР (👁) ---
-    '🐂': 'База',      # Bullshit
+    '🐂': 'База',       # Bullshit
     '🚜': 'Практика',  # Полевая работа
 
     # --- ВНУТРИ СОБЛАЗНЕНИЯ (❤️) ---
@@ -97,27 +96,28 @@ def update_json():
     print(">>> Подключение к Telegram...")
     try:
         with TelegramClient(StringSession(SESSION_STRING), API_ID, API_HASH) as client:
-            # Парсим последние 50 постов
-            for message in client.iter_messages(CHANNEL_USERNAME, limit=50):
+            # Парсим последние 50 постов по ID
+            for message in client.iter_messages(CHANNEL_ID, limit=50):
                 if not message.text: continue
 
-                post_url = f"https://t.me/{CHANNEL_USERNAME}/{message.id}"
+                # Формируем ссылку для закрытого канала (удаляем -100 из ID для URL)
+                # Результат будет: https://t.me/c/2283029399/123
+                clean_id = str(CHANNEL_ID).replace('-100', '')
+                post_url = f"https://t.me/c/{clean_id}/{message.id}"
+                
                 if post_url in existing_urls: continue
 
                 text = message.text
 
                 # 1. Ищем категорию
                 category = DEFAULT_CATEGORY
-                found_cat = False
+                # found_cat = False # Если нужно фильтровать только с категориями
                 for icon, name in CATEGORY_EMOJI_MAP.items():
                     if icon in text:
                         category = name
-                        found_cat = True
+                        # found_cat = True
                         break
                 
-                # Если категория не найдена, можно пропускать пост (раскомментить следующую строку)
-                # if not found_cat: continue 
-
                 # 2. Ищем подрубрику
                 subcategory = None
                 for icon, name in SUBCAT_EMOJI_MAP.items():
