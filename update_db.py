@@ -11,7 +11,7 @@ SESSION_STRING = os.environ['TG_SESSION']
 
 CHANNEL_ID = -1002283029399
 JSON_FILE = 'posts.json'
-MIN_LENGTH = 250 # Снизил лимит, т.к. продолжения могут быть короче, но важными
+MIN_LENGTH = 250
 
 # === 1. ГЛАВНЫЕ РУБРИКИ ===
 CATEGORY_EMOJI_MAP = {
