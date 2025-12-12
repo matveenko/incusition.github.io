@@ -2,7 +2,7 @@ name: Auto Update Content
 
 on:
   schedule:
-    ## - cron: '0 0 */3 * *' # Проверка каждые 3 day
+    - cron: '0 0 */3 * *' # Проверка каждые 3 day
   workflow_dispatch:      # Кнопка ручного запуска
 
 jobs:
